@@ -1,10 +1,9 @@
-import { AnySchema } from "joi";
 import { UseCaseContext } from "@type/core";
 import { Contact, IContactUseCase } from "@type/contact";
-import {
-  InvalidProperties,
-} from "@util/error";
-import { createContactSchema } from "./schemas/contact";
+import { createContactSchema, updateContactSchema } from "./schemas/contact";
+import { Pagination } from "@type/interface";
+import validateProperties from "@util/validation";
+import { CacheNamespace } from "@type/system";
 
 export class ContactUseCase implements IContactUseCase {
   private contactService: UseCaseContext["contactService"];
@@ -15,49 +14,47 @@ export class ContactUseCase implements IContactUseCase {
     this.systemService = ctx.systemService;
   }
 
-  private validateProperties({
-    schema,
-    params,
-    errorMsg,
-  }: {
-    schema: AnySchema;
-    params: object;
-    errorMsg: string;
-  }): void {
-    const validation = schema.validate(params, {
-      abortEarly: false,
-      allowUnknown: true,
-      stripUnknown: false,
-    });
-
-    if (validation.error) {
-      throw new InvalidProperties(errorMsg, validation.error.details);
-    }
+  public async find(filter: Partial<Contact>, pagination: Pagination): Promise<Array<any>> {
+    return this.contactService.find(filter, pagination);
   }
 
-  public async find(): Promise<Array<any>> {
-    return this.contactService.find();
+  public async asyncCreate(contact: Contact): Promise<void> {
+    validateProperties({
+      params: contact,
+      schema: createContactSchema,
+      errorMsg: "Invalid properties to create contact",
+    });
+
+    await this.contactService.asyncCreate(contact);
   }
 
   public async create(contact: Contact): Promise<void> {
-    this.validateProperties({
+    validateProperties({
       params: contact,
       schema: createContactSchema,
       errorMsg: "Invalid properties to create contact",
     });
 
     await this.contactService.create(contact);
-    this.systemService.redis()?.deleteByPrefix("contact");
+    this.systemService.redis()?.deleteByPrefix(CacheNamespace.Contact);
   }
   
-  public async update(contact: Contact): Promise<void> {
-    await this.contactService.update(contact);
-    this.systemService.redis()?.deleteByPrefix("contact");
+  public async update(id: number, contact: Contact): Promise<void> {
+    validateProperties({
+      params: contact,
+      schema: updateContactSchema,
+      errorMsg: "Invalid properties to update contact",
+    });
+    await this.contactService.update({
+      ...contact,
+      id
+    });
+    this.systemService.redis()?.deleteByPrefix(CacheNamespace.Contact);
   }
   
   public async delete(id: number): Promise<void> {
     const contact = { id } as Contact;
     await this.contactService.delete(contact);
-    this.systemService.redis()?.deleteByPrefix("contact");
+    this.systemService.redis()?.deleteByPrefix(CacheNamespace.Contact);
   }
 }

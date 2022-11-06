@@ -1,5 +1,5 @@
 import { ServiceContext } from "@type/core";
-import { ISystemService, SystemMetric } from "@type/system";
+import { ISystemService } from "@type/system";
 import { env } from "@util/env";
 
 export class SystemService implements ISystemService {
@@ -11,14 +11,6 @@ export class SystemService implements ISystemService {
   
   healthcheck(): Promise<void> {
     return this.systemRepository.healthcheck();
-  }
-
-  metrics(): Promise<SystemMetric> {
-    return this.systemRepository.metrics();
-  }
-
-  metricExcludeUrl(): string[] {
-    return this.systemRepository.metricExcludeUrl();
   }
 
   redis() {
