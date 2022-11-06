@@ -2,12 +2,13 @@ import { MysqlAdapter } from "@adapter/mysql";
 import { ContactRepository } from "../contact";
 import { MysqlDatabase } from "@type/infrastructure";
 import { Contact } from "@type/contact";
-import { contactMock } from "./__mocks__/contactRepository.mock";
+import { contactMock, messageBusAdapterMock } from "./__mocks__/contactRepository.mock";
 
 describe("Contact Repository", () => {
   const mysqlAdapter = new MysqlAdapter();
   const contactRepository = new ContactRepository({
     mysqlAdapter,
+    messageBusAdapter: messageBusAdapterMock
   });
 
   beforeAll(async()=>{
@@ -22,12 +23,22 @@ describe("Contact Repository", () => {
 
       const u = new ContactRepository({
         mysqlAdapter,
+        messageBusAdapter: messageBusAdapterMock
       });
 
       expect(u).toBeDefined();
       // @ts-ignore
       expect(mysqlAdapter._tbName).toEqual("contact");
       expect(u.find).toBeInstanceOf(Function);
+    });
+  });
+
+  describe("asyncCreate", () => {
+    it("should create published contact", async () => {
+      await expect(contactRepository.asyncCreate({
+        name: new Date().toISOString(),
+        phone: "13456"
+      } as Contact)).resolves.not.toThrow();
     });
   });
 
@@ -42,17 +53,19 @@ describe("Contact Repository", () => {
 
   describe("update", () => {
     it("should update contact", async () => {
-      const [contact] = await contactRepository.find();
-      await expect(contactRepository.update({
-        ...contactMock,
+      const [contact] = await contactRepository.find({}, {});
+      const data = {
+        name: "Raquel",
+        phone: new Date().toTimeString(),
         id: contact.id
-      })).resolves.not.toThrow();
+      } as Contact;
+      await expect(contactRepository.update(data)).resolves.not.toThrow();
     });
   });
 
   describe("delete", () => {
     it("should delete by id", async () => {
-      const [contact] = await contactRepository.find();
+      const [contact] = await contactRepository.find({}, {});
       await expect(contactRepository.update({
         id: contact.id
       } as Contact)).resolves.not.toThrow();
@@ -61,8 +74,8 @@ describe("Contact Repository", () => {
 
   describe("find", () => {
     it("should find contacts", async () => {
-      const [result] = await contactRepository.find();
-      expect(result.name).toStrictEqual(contactMock.name);
+      const [result] = await contactRepository.find({}, {});
+      expect(result).toBeDefined();
     });
   });
   

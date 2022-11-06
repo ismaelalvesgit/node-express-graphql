@@ -36,11 +36,21 @@ describe("Contact Service", () => {
   describe("#find", () => {
     it("should call find repository with filters", async () => {
       const svc = new ContactService(serviceMock);
-      const [ result ] = await svc.find();
+      const [ result ] = await svc.find({}, {});
       expect(result.name).toEqual(createContactMock.name);
     });
   });
  
+  describe("#asyncCreate", () => {
+    it("should call create repository with correct values", async () => {
+      const svc = new ContactService(serviceMock);
+      await expect(svc.asyncCreate({
+        name: new Date().toISOString(),
+        phone:  new Date().getTime().toString()
+      } as Contact)).resolves.not.toThrow();
+    });
+  });
+
   describe("#create", () => {
     it("should call create repository with correct values", async () => {
       const svc = new ContactService(serviceMock);
@@ -54,7 +64,7 @@ describe("Contact Service", () => {
   describe("#update", () => {
     it("should call update repository with correct values", async () => {
       const svc = new ContactService(serviceMock);
-      const [contact] = await svc.find();
+      const [contact] = await svc.find({}, {});
       await expect(svc.update({
         name: new Date().toISOString(),
         phone: "13456",
@@ -66,7 +76,7 @@ describe("Contact Service", () => {
   describe("#delete", () => {
     it("should call delete repository with correct values", async () => {
       const svc = new ContactService(serviceMock);
-      const [contact] = await svc.find();
+      const [contact] = await svc.find({}, {});
       await expect(svc.delete({
         id: contact.id
       } as Contact)).resolves.not.toThrow();

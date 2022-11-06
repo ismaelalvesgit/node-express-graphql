@@ -35,9 +35,19 @@ describe("Contact Use Case", () => {
   describe("#find", () => {
     it("Must be successful", async () => {
       const uc = new ContactUseCase(userCaseMock);
-      const [ contact ] = await uc.find();
+      const [ contact ] = await uc.find({}, {});
 
       expect(contact.name).toEqual(createContactMock.name);
+    });
+  });
+
+  describe("#asyncCreate", ()=>{
+    it("Must be successful", async () => {
+      const uc = new ContactUseCase(userCaseMock);
+      await expect(uc.asyncCreate({
+        name: new Date().toISOString(),
+        phone:  new Date().getTime().toString()
+      } as Contact)).resolves.not.toThrow();
     });
   });
 
@@ -54,11 +64,11 @@ describe("Contact Use Case", () => {
   describe("#update", ()=>{
     it("Must be successful", async () => {
       const uc = new ContactUseCase(userCaseMock);
-      const [contact] = await uc.find();
-      await expect(uc.update({
+      const [contact] = await uc.find({}, {});
+      await expect(uc.update( contact.id, {
         name: new Date().toISOString(),
         phone: "13456",
-        id: contact.id
+       
       } as Contact)).resolves.not.toThrow();
     });
   });
@@ -66,7 +76,7 @@ describe("Contact Use Case", () => {
   describe("#delete", ()=>{
     it("Must be successful", async () => {
       const uc = new ContactUseCase(userCaseMock);
-      const [contact] = await uc.find();
+      const [contact] = await uc.find({}, {});
       await expect(uc.delete(contact.id)).resolves.not.toThrow();
     });
   });
