@@ -3,12 +3,6 @@ var $ = jQuery;
 var animationTime = 20,
     days = 7;
 $(document).ready(function(){
-    var socket = io()
-    socket.emit('/example', 'new client connetion')
-    socket.on('/contact', (msg)=>{
-        console.log(msg)
-    })
-
     // timer arguments: 
     //   #1 - time of animation in mileseconds, 
     //   #2 - days to deadline

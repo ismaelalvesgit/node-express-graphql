@@ -27,6 +27,7 @@
       "@core/*": ["core/*"],
       "@controller/*": ["interface/http/controller/*"],
       "@middleware/*": ["interface/http/middleware/*"],
+      "@graphql/*": ["interface/http/graphql/*"],
       "@amqp/*": ["interface/amqp/*"],
       "@util/*": ["util/*"],
       "@repository/*": ["infrastructure/repository/*"],
