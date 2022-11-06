@@ -7,9 +7,12 @@ import { InternalServer, InvalidProperties } from "@util/error";
 import { AmqpChannel, AmqpConsumerConfig, AmqpMessage, AmqpMessageHandler, AmqpParsedMessage, IAmqpConsumer } from "@type/interface";
 import { createContactSchema } from "@amqp/consumer/schemas/contact";
 import { Contact } from "@type/contact";
+import { CacheNamespace, SubscribeNameSpace } from "@type/system";
+import pubsub from "@graphql/helpers/pubsub";
 
 export class ContactConsumer implements IAmqpConsumer {
   private contactUseCase: AmqpConsumerConfig["coreContainer"]["contactUseCase"];
+  private systemUseCase: AmqpConsumerConfig["coreContainer"]["systemUseCase"];
   private _onConsume: AmqpConsumerConfig["_onConsume"];
   private consumers = {
     create: "example-operations.create",
@@ -17,6 +20,7 @@ export class ContactConsumer implements IAmqpConsumer {
 
   constructor({ coreContainer, _onConsume }: AmqpConsumerConfig) {
     this.contactUseCase = coreContainer.contactUseCase;
+    this.systemUseCase = coreContainer.systemUseCase;
     this._onConsume = _onConsume;
   }
 
@@ -55,7 +59,7 @@ export class ContactConsumer implements IAmqpConsumer {
 
     try {
       await this.contactUseCase.create(contact);
-
+      this.systemUseCase.redis()?.deleteByPrefix(CacheNamespace.Contact);
       Logger.info({
         msg: "Notify contact create with success",
         obj: { contact },
@@ -76,6 +80,13 @@ export class ContactConsumer implements IAmqpConsumer {
         "message",
         err,
       ) as string;
+
+      pubsub.publish(SubscribeNameSpace.POST_CONTACT_NOT_CREATED, {
+        contactNotCreated: {
+          reason: errMessage,
+          data: contact
+        },
+      });
 
       throw new InternalServer(defaultMessage, [{
         msg: errMessage,
