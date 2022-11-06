@@ -1,0 +1,55 @@
+type Contact {
+    """
+    Contact id
+    """
+    id: ID
+
+    """
+    Contact name 
+    """
+    name: String
+
+    """
+    Contact phone number
+    """
+    phone: String
+
+    """
+    Contact createdAt 
+    """
+    createdAt: Date
+
+    """
+    Contact updatedAt 
+    """
+    updatedAt: Date
+}
+
+input ContactData {
+    """
+    Contact name 
+    """
+    name: String
+    
+    """
+    Contact phone number
+    """
+    phone: String
+}
+
+input ContactFilter {
+    """
+    Contact id
+    """
+    id: ID
+
+    """
+    Contact name 
+    """
+    name: String
+    
+    """
+    Contact phone number
+    """
+    phone: String
+}

@@ -1,0 +1,21 @@
+type Mutation {
+    """
+    Create new contact by queue
+    """
+    asyncCreateContact(data: ContactData!): String
+
+    """
+    Create new contact
+    """
+    createContact(data: ContactData!): String
+
+    """
+    Update contact by id
+    """
+    updateContact(id: ID!, data: ContactData): String
+
+    """
+    Delete contact by id
+    """
+    deleteContact(id: ID!): String
+}

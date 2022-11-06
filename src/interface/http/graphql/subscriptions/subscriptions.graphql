@@ -1,0 +1,16 @@
+type Subscription {
+  """
+  Return new contact created
+  """
+  contactCreated: Contact
+ 
+  """
+  Return contact not created by queue
+  """
+  contactNotCreated: ContactNotCreated
+}
+
+type ContactNotCreated {
+  reason: String
+  data: Contact
+}

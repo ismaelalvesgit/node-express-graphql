@@ -1,0 +1,35 @@
+
+scalar Date
+scalar DateTime
+scalar Time
+
+type Query {
+  """
+  List of contact
+
+  default pagination 
+
+  size: 100, 
+  sortBy: name, 
+  sort: ASC, 
+  """
+  allContact(filter: ContactFilter, pagination: Pagination): [Contact!]
+}
+
+"""
+values ​​accepted in the 'sort' parameter of the pagination
+"""
+enum PaginationSort {
+  ASC
+  DESC
+}
+
+"""
+Pagination parameters
+"""
+input Pagination {
+  page: Int = 0
+  size: Int = 100
+  sortBy: String
+  sort: PaginationSort
+}
