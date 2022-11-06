@@ -1,36 +1,35 @@
+import { ApolloServer, } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import helmet, { hsts } from "helmet";
 import cors from "cors";
 import express from "express";
 import xssFilter from "x-xss-protection";
 import responseTime from "response-time";
-import swagger from "swagger-ui-express";
-import YAML from "yamljs";
 import http from "http";
 import hidePoweredBy from "hide-powered-by";
-import { Server } from "socket.io";
-import { errorHandler } from "./middleware/errorHandler";
 import { Container } from "@type/core";
 import { IHttpInterface } from "@type/interface";
 import { ExpressLogger, Logger } from "@util/logger";
-import requestIdHandler from "@middleware/requestId";
-import limteRate from "@middleware/limteRate";
-import requestCountersHandler from "@middleware/metrics/requestCounters";
-import responseCountersHandler from "@middleware/metrics/responseCounters";
+import { IContext } from "@type/interface";
+import generateSchemas from "./graphql/helpers/generateSchemas";
+import resolvers from "./graphql/resolvers";
 import changeLocaleHandler from "@middleware/changeLocale";
 import i18n from "@middleware/i18n";
+import requestIdHandler from "@middleware/requestId";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 import { HttpRouter } from "@controller/routes";
-import { ServiceUnavailable } from "@util/error";
-const swaggerDocument = YAML.load("./doc/swagger.yml");
 
 type Config = {
   env: typeof import("@util/env").env;
   coreContainer: Container;
-  io: Server
 };
 
 export class HttpInterface implements IHttpInterface {
-  private app?: express.Application;
-  private io: Server;
+  private app: express.Express;
+  private httpServer: http.Server;
   private coreContainer: Config["coreContainer"];
   private env: Config["env"];
 
@@ -38,12 +37,12 @@ export class HttpInterface implements IHttpInterface {
     Logger.debug({
       coreContainer: config.coreContainer !== undefined,
       env: config.env !== undefined,
-      io: config.io !== undefined,
     }, "fun: HttpInterface.constructor");
 
     this.coreContainer = config.coreContainer;
     this.env = config.env;
-    this.io = config.io;
+    this.app = express();
+    this.httpServer = http.createServer(this.app); 
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -55,9 +54,7 @@ export class HttpInterface implements IHttpInterface {
     }, msg);
   }
 
-  initApp() {
-    this.app = express();
-
+  private async initApp() {
     this.app.use(
       helmet({
         contentSecurityPolicy: this.env.isProd,
@@ -75,26 +72,21 @@ export class HttpInterface implements IHttpInterface {
       requestIdHandler,
       i18n.init,
       changeLocaleHandler,
-      requestCountersHandler(this.coreContainer),
-      responseCountersHandler(this.coreContainer),
       responseTime(),
-      limteRate()
     );
 
     this.setupEngineView();
     
-    this.setupDoc();
-    
     this.setupAssets();
 
-    this.app.use(ExpressLogger.onSuccess.bind(ExpressLogger));
+    // this.app.use(ExpressLogger.onSuccess.bind(ExpressLogger));
     this.app.use(ExpressLogger.onError.bind(ExpressLogger));
 
     this.setupRoutes();
+    
+    await this.startApolloServer();
 
     this.setupNotFound();
-    
-    this.app.use(errorHandler);
   }
 
   setupRoutes() {
@@ -110,37 +102,69 @@ export class HttpInterface implements IHttpInterface {
     this._debug({}, "setupRoutes end");
   }
 
-  setupNotFound() {
-    this.app?.all(
+  private setupNotFound() {
+    this.app.all(
       "*",
-      (req: express.Request, res: express.Response, next ) => {
-        return next(new ServiceUnavailable("router"));
+      (req: express.Request, res: express.Response ) => {
+        res.json({message: req.__("ServiceUnavailable.router")}).status(501);
       },
     );
   }
 
-
-  setupDoc(){
-    this.app?.use("/v1/api-doc", swagger.serve, swagger.setup(swaggerDocument));
+  private setupAssets(){  
+    this.app.use("/static", express.static("./src/public"));
   }
 
-  setupAssets(){  
-    this.app?.use("/static", express.static("./src/public"));
+  private setupEngineView(){
+    this.app.set("view engine", "ejs");
+    this.app.set("views", "./src/views");
   }
 
-  setupEngineView(){
-    this.app?.set("view engine", "ejs");
-    this.app?.set("views", "./src/views");
+  
+  private async startApolloServer(){
+    const path = "/v1/graphql";
+    const typeDefs = generateSchemas();
+    const wsServer = new WebSocketServer({
+      server: this.httpServer,
+      path,
+    });
+    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    const serverCleanup = useServer({ schema }, wsServer);
+
+    const server = new ApolloServer<IContext>({
+      schema,
+      plugins: [ApolloServerPluginDrainHttpServer({httpServer: this.httpServer}), 
+        {
+          async serverWillStart() {
+            return {
+              async drainServer() {
+                await serverCleanup.dispose();
+              },
+            };
+          },
+        }
+      ]
+    });
+
+    await server.start();
+
+    this.app.use(path,
+      cors<cors.CorsRequest>(),
+      express.json(),
+      expressMiddleware(server, {context: async ({req}) => {
+        return {
+          coreContainer: this.coreContainer,
+          requestId: req.requestId,
+          i18n: req.__
+        };
+      }})
+    );
   }
 
-  serve() {
-    this.initApp();
+  async serve() {
+    await this.initApp();
 
-    const httpServer = http.createServer(this.app); 
-    
-    this.io.listen(httpServer);
-
-    httpServer.listen(this.env.server.port);
+    this.httpServer.listen(this.env.server.port);
 
     this._debug({}, "http interface initialized");
   }

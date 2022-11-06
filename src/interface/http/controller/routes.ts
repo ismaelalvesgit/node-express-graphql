@@ -1,11 +1,7 @@
 import { Container } from "@type/core";
 import { IHttpRoute } from "@type/interface";
-import { ContactController } from "@controller/v1/contact";
-import { validator } from "@middleware/validator";
 import express from "express";
-import catchAsync from "@middleware/catchAsync";
 import { Logger } from "@util/logger";
-import { BrasilController } from "./v1/brasil";
 import { SystemController } from "./v1/system";
 
 type Config = {
@@ -35,18 +31,6 @@ export class HttpRouter {
         [
             new SystemController({
                 coreContainer: this.coreContainer,
-                validator,
-                catchAsync
-            }),
-            new ContactController({
-                coreContainer: this.coreContainer,
-                validator,
-                catchAsync
-            }),
-            new BrasilController({
-                coreContainer: this.coreContainer,
-                validator,
-                catchAsync
             })
         ].forEach((route: IHttpRoute) => {
             const router = express.Router({ mergeParams: true });
