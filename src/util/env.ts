@@ -41,11 +41,6 @@ const env: Env = {
         secretToken: process.env.APM_SECRET_TOKEN,
         cloudProvider: process.env.APM_CLOUND_PROVIDER || "none"
     },
-    vault: {
-        host: process.env.VAULT_URL,
-        roleId: process.env.VAULT_ROLE_ID,
-        secretId: process.env.VAULT_SECRET_ID
-    },
     amqp: {
         active: process.env.AMQP_ACTIVE === "true",
         protocol: process.env.AMQP_PROTOCOL,
@@ -54,7 +49,13 @@ const env: Env = {
         user: process.env.AMQP_USERNAME,
         password: process.env.AMQP_PASSWORD,
         vhost: process.env.AMQP_VHOST,
+        exchanges: {
+            example: {
+                key: "example-create",
+                routing: "operations-create"
+            }
+        }
     }
 };
-console.log(env)
+
 export { env };

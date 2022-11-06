@@ -5,33 +5,73 @@ import {
   NextFunction,
 } from "express";
 import { Channel, ConsumeMessage } from "amqplib";
-
+import { AnySchema } from "joi";
 import { Container } from "./core";
 import { Server, Socket } from "socket.io";
+import { I18n, TranslateOptions, Replacements } from "i18n";
 
 declare module 'express-serve-static-core' {
   interface Request {
     requestId: string
   }
 }
+
+declare module 'express' {
+  interface Request {
+    requestId: string
+  }
+}
+
+export interface ValidationOptions {
+  i18n?: string;
+  requestId?: string;
+}
+
+export interface ValidationParams {
+  schema: AnySchema;
+  params: object;
+  errorMsg: string;
+}
+
+export interface Pagination {
+  size?: number
+  page?: number
+  sortBy?: string
+  sort?: 'ASC' | 'DESC'
+}
+
+
+export type GraphqlSubscriptionHandler = {
+  subscribe: (parent: string, agrs: any, context: IContext)=> AsyncIterator<T>
+}
+export type GraphqlHandler = (parent: string, agrs: any, context: IContext)=> Promise<unknown>
+
+/* GRAPHQL Interface */
+export type SubscriptionParams = Record<string, GraphqlSubscriptionHandler>
+export type ResolverParams = Record<string, GraphqlHandler>
+
 /* HTTP Interface */
 export type HttpRouter = Router;
 export type HttpRequest = Request;
 export type HttpResponse = Response;
 export type HttpNext = NextFunction;
 
+export type HttpControllerConfig = {
+  coreContainer: Container;
+};
+
 export interface IHttpRoute {
   register(r: HttpRouter): void;
 }
 
 export interface IHttpInterface {
-  serve(): void;
+  serve(): Promise<void>;
 }
 
-export type HttpControllerConfig = {
+export interface IContext {
   coreContainer: Container;
-  validator: typeof import("../interface/http/middleware/validator").validator;
-  catchAsync: typeof import("../interface/http/middleware/catchAsync").default;
+  requestId: string
+  i18n: (phraseOrOptions: string | TranslateOptions,  replacements: Replacements) => string
 };
 
 /* AMQP Interface */
@@ -52,10 +92,6 @@ export interface IAmqpInterface {
   connect(): Promise<void>;
 }
 
-export interface ISocketInterface {
-  connect(): void;
-}
-
 export interface IAmqpConsumer {
   assertQueue(channel: AmqpChannel): void;
 }
@@ -67,11 +103,6 @@ export interface ISocketConsumer {
 export type AmqpConsumerConfig = {
   coreContainer: Container;
   _onConsume: AmqpOnConsumeFunction;
-};
-
-export type SocketConsumerConfig = {
-  coreContainer: Container;
-  socket: Socket
 };
 
 export interface ICronInterface {

@@ -1,3 +1,5 @@
+import { Pagination } from "./interface"
+
 export interface Contact {
   id: number
   name: string
@@ -7,22 +9,25 @@ export interface Contact {
 }
 
 export interface IContactRepository {
-  find(): Promise<Array<Contact>>;
+  find(filter: Partial<Contact>, pagination: Pagination): Promise<Array<Contact>>;
+  asyncCreate(contact: Contact): Promise<void>;
   create(contact: Contact): Promise<void>;
   update(contact: Contact): Promise<void>;
   delete(contact: Contact): Promise<void>;
 }
 
 export interface IContactService {
-  find(): Promise<Array<Contact>>;
+  find(filter: Partial<Contact>, pagination: Pagination): Promise<Array<Contact>>;
+  asyncCreate(contact: Contact): Promise<void>;
   create(contact: Contact): Promise<void>;
   update(contact: Contact): Promise<void>;
   delete(contact: Contact): Promise<void>;
 }
 
 export interface IContactUseCase {
-  find(): Promise<Array<Contact>>;
+  find(filter: Partial<Contact>, pagination: Pagination): Promise<Array<Contact>>;
+  asyncCreate(contact: Contact): Promise<void>;
   create(contact: Contact): Promise<void>;
-  update(contact: Contact): Promise<void>;
+  update(id: number, contact: Contact): Promise<void>;
   delete(id: number): Promise<void>;
 }
