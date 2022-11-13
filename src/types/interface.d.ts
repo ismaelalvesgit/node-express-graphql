@@ -47,8 +47,8 @@ export type GraphqlSubscriptionHandler = {
 export type GraphqlHandler = (parent: string, agrs: any, context: IContext)=> Promise<unknown>
 
 /* GRAPHQL Interface */
-export type SubscriptionParams = Record<string, GraphqlSubscriptionHandler>
-export type ResolverParams = Record<string, GraphqlHandler>
+export type GraphqlSubscription = Record<string, GraphqlSubscriptionHandler>
+export type GraphqlResolver = Record<string, GraphqlHandler>
 
 /* HTTP Interface */
 export type HttpRouter = Router;

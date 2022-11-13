@@ -110,4 +110,9 @@ export type Env = {
     vhost?: string
     exchanges: Record<string, {key: string, routing: string}>
   }
+  vault: {
+    host?: string
+    roleId?: string
+    secretId?: string
+  }
 };

@@ -21,9 +21,10 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { HttpRouter } from "@controller/routes";
+import { Env } from "@type/infrastructure";
 
 type Config = {
-  env: typeof import("@util/env").env;
+  env: Env;
   coreContainer: Container;
 };
 

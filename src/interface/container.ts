@@ -14,9 +14,10 @@ import {
   ICronInterface,
 } from "@type/interface";
 import { CronInterface } from "./cron";
+import { Env } from "@type/infrastructure";
 
 type ContainerConfig = {
-  env: typeof import("@util/env").env;
+  env: Env;
   init: {
     http?: boolean;
     amqp?: boolean;

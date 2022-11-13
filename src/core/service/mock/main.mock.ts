@@ -15,7 +15,7 @@ export const findContactMock = { id: chance.integer({min: 0, max: 10}) };
 export const createContactMock = { name: chance.guid(), phone: chance.phone() } as Contact;
 
 export const serviceMock = {
-    systemRepository: new SystemRepository({config: env, redisAdapter: RedisAdapter}),
+    systemRepository: new SystemRepository({config: env.get(), redisAdapter: RedisAdapter}),
     contactRepository: new ContactRepository({mysqlAdapter,  messageBusAdapter: messageBusAdapterMock }),
     brasilRepository: {
         getCep: jest.fn().mockResolvedValue({ ...cepMock }),

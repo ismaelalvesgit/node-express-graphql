@@ -1,7 +1,7 @@
-import { ResolverParams } from "@type/interface";
+import { GraphqlResolver } from "@type/interface";
 import catchAsync from "interface/http/graphql/helpers/catchAsync";
 
-const contactMutation: ResolverParams =  {
+const contactMutation: GraphqlResolver =  {
     asyncCreateContact: catchAsync(async(root, args, context)=> {
         const { data } = args;
         await context.coreContainer.contactUseCase.asyncCreate(data);

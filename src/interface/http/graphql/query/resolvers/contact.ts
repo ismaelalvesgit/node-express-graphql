@@ -1,8 +1,8 @@
-import { Pagination, ResolverParams } from "@type/interface";
+import { Pagination, GraphqlResolver } from "@type/interface";
 import { CacheNamespace } from "@type/system";
 import { cacheQuery } from "../../helpers/cache";
 
-const contactQuery: ResolverParams =  {
+const contactQuery: GraphqlResolver =  {
     allContact: cacheQuery(async(parent, args, { coreContainer } )=>{
         const { pagination, filter } = args;
    

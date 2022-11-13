@@ -36,8 +36,8 @@ export class ContactRepository implements IContactRepository {
 
   async asyncCreate(contact: Contact): Promise<void> {
     await this.messageBusAdapter.publish(
-      env.amqp.exchanges.example.key,
-      env.amqp.exchanges.example.routing,
+      env.get().amqp.exchanges.example.key,
+      env.get().amqp.exchanges.example.routing,
       contact
     );
   }

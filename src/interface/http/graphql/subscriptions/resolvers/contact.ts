@@ -1,8 +1,8 @@
-import { SubscriptionParams } from "@type/interface";
+import { GraphqlSubscription } from "@type/interface";
 import pubsub from "@graphql/helpers/pubsub";
 import { SubscribeNameSpace } from "@type/system";
 
-const contactMutation: SubscriptionParams =  {
+const contactMutation: GraphqlSubscription =  {
     contactCreated: {
         subscribe: ()=> pubsub.asyncIterator(SubscribeNameSpace.POST_CONTACT_CREATED)
     },
