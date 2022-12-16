@@ -8,8 +8,7 @@ import xssFilter from "x-xss-protection";
 import responseTime from "response-time";
 import http from "http";
 import hidePoweredBy from "hide-powered-by";
-import { Container } from "@type/core";
-import { IHttpInterface } from "@type/interface";
+import { IConfig, IHttpInterface } from "@type/interface";
 import { ExpressLogger, Logger } from "@util/logger";
 import { IContext } from "@type/interface";
 import generateSchemas from "./graphql/helpers/generateSchemas";
@@ -21,20 +20,14 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { HttpRouter } from "@controller/routes";
-import { Env } from "@type/infrastructure";
-
-type Config = {
-  env: Env;
-  coreContainer: Container;
-};
 
 export class HttpInterface implements IHttpInterface {
   private app: express.Express;
   private httpServer: http.Server;
-  private coreContainer: Config["coreContainer"];
-  private env: Config["env"];
+  private coreContainer: IConfig["coreContainer"];
+  private env: IConfig["env"];
 
-  constructor(config: Config) {
+  constructor(config: IConfig) {
     Logger.debug({
       coreContainer: config.coreContainer !== undefined,
       env: config.env !== undefined,

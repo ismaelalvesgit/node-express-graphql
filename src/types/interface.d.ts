@@ -7,8 +7,8 @@ import {
 import { Channel, ConsumeMessage } from "amqplib";
 import { AnySchema } from "joi";
 import { Container } from "./core";
-import { Server, Socket } from "socket.io";
 import { I18n, TranslateOptions, Replacements } from "i18n";
+import { FuncHandler } from '@amqp/middlewares/handlers'
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -20,6 +20,11 @@ declare module 'express' {
   interface Request {
     requestId: string
   }
+}
+
+export interface IConfig {
+  env: Env;
+  coreContainer: Container;
 }
 
 export interface ValidationOptions {
@@ -83,7 +88,7 @@ export type AmqpMessageHandler = (msg: AmqpMessage | null) => void | Promise<voi
 export type AmqpOnConsumeFunction = (
   channel: AmqpChannel,
   finisher: FinisherFunction,
-  ...msgHandlers: import("../interface/amqp/middlewares/handlers").FuncHandler[]
+  ...msgHandlers: FuncHandler[]
 ) => (message: AmqpMessage | null) => Promise<void>;
 
 export type FinisherFunction = (channel: AmqpChannel, message: AmqpMessage, error?: unknown) => unknown;
