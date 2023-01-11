@@ -1,4 +1,4 @@
-# API hexagonal em node.js
+# API Graphql em node.js
 Este projeto foi criado por motivos acadêmicos mostrando um pouco o que aprendi estudando a arquitetura [hexagonal](https://medium.com/tableless/desvendando-a-arquitetura-hexagonal-52c56f8824c)
 
 ## Screenshots
